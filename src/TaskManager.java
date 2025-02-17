@@ -21,15 +21,16 @@ public class TaskManager {
     }
 
     public void addSubtask(Subtask subtask) {
+        Epic epic = epics.get(subtask.getEpicId());
+        if (epic == null) {
+            return;
+        }
         subtask.setId(generateId());
         subtasks.put(subtask.getId(), subtask);
-
-        Epic epic = epics.get(subtask.getEpicId());
-        if (epic != null) {
-            epic.addSubtask(subtask.getId());
-            updateEpicStatus(epic);
-        }
+        epic.addSubtask(subtask.getId());
+        updateEpicStatus(epic);
     }
+
 
     public void updateTask(Task task) {
         if (tasks.containsKey(task.getId())) {
@@ -39,10 +40,28 @@ public class TaskManager {
 
     public void updateSubtask(Subtask subtask) {
         if (subtasks.containsKey(subtask.getId())) {
+            Subtask existingSubtask = subtasks.get(subtask.getId());
+
+            if (existingSubtask.getEpicId() != subtask.getEpicId()) {
+                return;
+            }
+
             subtasks.put(subtask.getId(), subtask);
             updateEpicStatus(epics.get(subtask.getEpicId()));
         }
     }
+
+    public void updateEpic(Epic epic) {
+        if (epics.containsKey(epic.getId())) {
+            Epic existingEpic = epics.get(epic.getId());
+
+            existingEpic.setTitle(epic.getTitle());
+            existingEpic.setDescription(epic.getDescription());
+
+            updateEpicStatus(existingEpic);
+        }
+    }
+
 
 
     private void updateEpicStatus(Epic epic) {
@@ -95,6 +114,24 @@ public class TaskManager {
             }
         }
     }
+
+    public void deleteAllTasks() {
+        tasks.clear();
+    }
+
+    public void deleteAllEpics() {
+        epics.clear();
+        subtasks.clear();
+    }
+
+    public void deleteAllSubtasks() {
+        subtasks.clear();
+        for (Epic epic : epics.values()) {
+            epic.clearSubtasks();
+            updateEpicStatus(epic);
+        }
+    }
+
 
     public ArrayList<Task> getAllTasks() {
         return new ArrayList<>(tasks.values());

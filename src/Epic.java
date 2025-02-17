@@ -9,7 +9,7 @@ public class Epic extends Task {
     }
 
     public ArrayList<Integer> getSubtaskIds() {
-        return subtaskIds;
+        return new ArrayList<>(subtaskIds);
     }
 
     public void addSubtask(int subtaskId) {
@@ -19,6 +19,12 @@ public class Epic extends Task {
     public void removeSubtask(int subtaskId) {
         subtaskIds.remove(Integer.valueOf(subtaskId));
     }
+
+    public void clearSubtasks() {
+        subtaskIds.clear();
+    }
+
+
 
     @Override
     public String toString() {
