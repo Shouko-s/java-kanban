@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.List;
 
 public class Epic extends Task {
     private final ArrayList<Integer> subtaskIds = new ArrayList<>();
@@ -12,8 +11,11 @@ public class Epic extends Task {
         return new ArrayList<>(subtaskIds);
     }
 
-    public void addSubtask(int subtaskId) {
-        subtaskIds.add(subtaskId);
+    public void addSubtask(Task task) {
+        if(task instanceof Epic) {
+            return;
+        }
+        subtaskIds.add(task.getId());
     }
 
     public void removeSubtask(int subtaskId) {
