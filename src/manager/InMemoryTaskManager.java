@@ -1,17 +1,21 @@
+package manager;
+
+import model.Epic;
+import model.Status;
+import model.Subtask;
+import model.Task;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class InMemoryTaskManager implements TaskManager {
-    private final HashMap<Integer, Task> tasks = new HashMap<>();
-    private final HashMap<Integer, Epic> epics = new HashMap<>();
-    private final HashMap<Integer, Subtask> subtasks = new HashMap<>();
+    private final Map<Integer, Task> tasks = new HashMap<>();
+    private final Map<Integer, Epic> epics = new HashMap<>();
+    private final Map<Integer, Subtask> subtasks = new HashMap<>();
 
-    private final HistoryManager historyManager;
-
-    public InMemoryTaskManager(HistoryManager historyManager) {
-        this.historyManager = historyManager;
-    }
+    private final HistoryManager historyManager = Managers.getDefaultHistory();
 
     private int idCounter = 1;
 
@@ -200,6 +204,23 @@ public class InMemoryTaskManager implements TaskManager {
         }
         return subtask;
     }
+
+    @Override
+    public List<Subtask> getSubtaskByEpic(int epicId) {
+        List<Subtask> subtasksByEpic = new ArrayList<>();
+        Epic epic = epics.get(epicId);
+        if (epic == null) {
+            return subtasksByEpic;
+        }
+        for (Integer subtaskId : epic.getSubtaskIds()) {
+            Subtask subtask = subtasks.get(subtaskId);
+            if (subtask != null) {
+                subtasksByEpic.add(subtask);
+            }
+        }
+        return subtasksByEpic;
+    }
+
 
     @Override
     public List<Task> getHistory() {
