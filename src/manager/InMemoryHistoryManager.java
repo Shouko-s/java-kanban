@@ -17,12 +17,11 @@ public class InMemoryHistoryManager implements HistoryManager {
         Node<Task> newNode = new Node<>(task);
         if (tail == null) {
             head = newNode;
-            tail = newNode;
         } else {
             tail.next = newNode;
             newNode.prev = tail;
-            tail = newNode;
         }
+        tail = newNode;
 
         return newNode;
     }
