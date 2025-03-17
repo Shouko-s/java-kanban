@@ -126,23 +126,85 @@ class TaskTest {
     }
 
     @Test
-    public void testHistoryPreservesTaskSnapshot() {
-        Task originalTask = new Task("Original Title", "Original Description", Status.NEW);
-        originalTask.setId(1);
-
+    public void testHistoryAdd() {
         HistoryManager historyManager = Managers.getDefaultHistory();
-        historyManager.add(originalTask);
 
-        originalTask.setTitle("Modified Title");
-        originalTask.setDescription("Modified Description");
-        originalTask.setStatus(Status.DONE);
+        Task task1 = new Task("Задача 1", "Описание задачи 1", Status.NEW);
+        Task task2 = new Task("Задача 2", "Описание задачи 2", Status.NEW);
+        task1.setId(0);
+        task2.setId(1);
+
+        historyManager.add(task2);
+        historyManager.add(task1);
 
         List<Task> history = historyManager.getHistory();
-        assertFalse(history.isEmpty());
+        assertEquals(2, history.size());
+        assertEquals(task1, history.get(1));
+        assertEquals(task2, history.get(0));
 
-        Task historyTask = history.getFirst();
-        assertEquals("Original Title", historyTask.getTitle());
-        assertEquals("Original Description", historyTask.getDescription());
-        assertEquals(Status.NEW, historyTask.getStatus());
+    }
+
+    @Test
+    public void testHistoryRemove() {
+        HistoryManager historyManager = Managers.getDefaultHistory();
+
+        task1.setId(0);
+        task1.setId(1);
+
+        historyManager.add(task1);
+        historyManager.add(task2);
+
+        List<Task> history = historyManager.getHistory();
+        assertEquals(2, history.size());
+        assertEquals(task1, history.get(0));
+        assertEquals(task2, history.get(1));
+
+        historyManager.remove(task1.getId());
+        history = historyManager.getHistory();
+        assertEquals(1, history.size());
+        assertEquals(task2, history.get(0));
+    }
+
+    @Test
+    public void testSubtaskDeletionRemovesIdFromEpic() {
+        TaskManager manager = Managers.getDefault();
+
+        Epic epic = new Epic("Epic", "Epic description");
+        manager.addEpic(epic);
+        Subtask subtask1 = new Subtask("Subtask 1", "Subtask description 1", Status.NEW, epic.getId());
+        Subtask subtask2 = new Subtask("Subtask 2", "Subtask description 2", Status.NEW, epic.getId());
+        manager.addSubtask(subtask1);
+        manager.addSubtask(subtask2);
+
+        List<Integer> epicSubtaskIds = epic.getSubtaskIds();
+        assertTrue(epicSubtaskIds.contains(subtask1.getId()));
+        assertTrue(epicSubtaskIds.contains(subtask2.getId()));
+
+        manager.deleteSubtask(subtask1.getId());
+
+        epicSubtaskIds = epic.getSubtaskIds();
+        assertFalse(epicSubtaskIds.contains(subtask1.getId()));
+        assertEquals(1, epicSubtaskIds.size());
+        assertEquals(subtask2.getId(), epicSubtaskIds.get(0));
+    }
+
+    @Test
+    public void testSubtaskDeletionFromEpic() {
+        TaskManager manager = Managers.getDefault();
+
+        Epic epic = new Epic("Epic", "Epic description");
+        manager.addEpic(epic);
+        Subtask subtask1 = new Subtask("Subtask 1", "Subtask description 1", Status.NEW, epic.getId());
+        Subtask subtask2 = new Subtask("Subtask 2", "Subtask description 2", Status.NEW, epic.getId());
+        manager.addSubtask(subtask1);
+        manager.addSubtask(subtask2);
+
+        assertNotNull(manager.getSubtask(subtask1.getId()));
+        assertNotNull(manager.getSubtask(subtask2.getId()));
+
+        manager.deleteSubtask(subtask1.getId());
+
+        assertEquals(1, epic.getSubtaskIds().size());
+        assertEquals(subtask2.getId(), epic.getSubtaskIds().get(0));
     }
 }
