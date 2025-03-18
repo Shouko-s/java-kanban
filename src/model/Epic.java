@@ -14,7 +14,7 @@ public class Epic extends Task {
     }
 
     public void addSubtask(Task task) {
-        if(task instanceof Epic) {
+        if (task instanceof Epic) {
             return;
         }
         subtaskIds.add(task.getId());
@@ -27,7 +27,6 @@ public class Epic extends Task {
     public void clearSubtasks() {
         subtaskIds.clear();
     }
-
 
 
     @Override
