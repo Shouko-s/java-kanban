@@ -54,7 +54,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 if (task instanceof Epic) {
                     fileBackedTaskManager.addEpic((Epic) task);
                     System.out.println("added epic");
-                } else if (task instanceof Subtask){
+                } else if (task instanceof Subtask) {
                     fileBackedTaskManager.addSubtask((Subtask) task);
                     System.out.println("added subtask");
                 } else {
