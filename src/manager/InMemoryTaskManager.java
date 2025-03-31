@@ -48,6 +48,26 @@ public class InMemoryTaskManager implements TaskManager {
         updateEpicStatus(epic);
     }
 
+    protected void loadTask(Task task) {
+        tasks.put(task.getId(), task);
+    }
+
+    protected void loadEpic(Epic epic) {
+        epics.put(epic.getId(), epic);
+    }
+
+    protected void loadSubtask(Subtask subtask) {
+        subtasks.put(subtask.getId(), subtask);
+    }
+
+    protected void setIdCounter(int idCounter) {
+        this.idCounter = idCounter;
+    }
+
+    public int getIdCounter() {
+        return idCounter;
+    }
+
     @Override
     public void updateTask(Task task) {
         if (tasks.containsKey(task.getId())) {
