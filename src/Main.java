@@ -69,9 +69,6 @@ public class Main {
 
             System.out.println(manager.getIdCounter());
 
-            Task task4 = new Task("Task 4", "Описание 1", Status.NEW);
-            manager.addTask(task4);
-
             System.out.println("-- Все задачи --");
             for (Task task : manager.getAllTasks()) {
                 System.out.println(task);
