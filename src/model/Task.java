@@ -20,6 +20,14 @@ public class Task {
         this.startTime = startTime;
     }
 
+    public Task(String title, String description, Status status) {
+        this.title = title;
+        this.description = description;
+        this.status = status;
+        this.duration = null;
+        this.startTime = null;
+    }
+
     public int getId() {
         return id;
     }
@@ -58,6 +66,14 @@ public class Task {
 
     public LocalDateTime getStartTime() {
         return startTime;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
     }
 
     public LocalDateTime getEndTime() {

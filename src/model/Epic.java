@@ -6,13 +6,19 @@ import java.util.ArrayList;
 
 public class Epic extends Task {
     private final ArrayList<Integer> subtaskIds = new ArrayList<>();
-    private Duration duration;
-    private LocalDateTime startTime;
     private LocalDateTime endTime;
 
     public Epic(String title, String description, Duration duration, LocalDateTime startTime) {
         super(title, description, Status.NEW, duration, startTime);
     }
+
+    public Epic(String title, String description) {
+        super(title, description, Status.NEW);
+        this.duration = null;
+        this.startTime = null;
+        this.endTime = null;
+    }
+
 
     public ArrayList<Integer> getSubtaskIds() {
         return new ArrayList<>(subtaskIds);
@@ -54,14 +60,6 @@ public class Epic extends Task {
                 .map(Subtask::getEndTime)
                 .max(LocalDateTime::compareTo)
                 .orElse(null);
-    }
-
-    public Duration getDuration() {
-        return duration;
-    }
-
-    public LocalDateTime getStartTime() {
-        return startTime;
     }
 
     public LocalDateTime getEndTime() {

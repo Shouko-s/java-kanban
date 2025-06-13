@@ -68,6 +68,7 @@ public class InMemoryTaskManager implements TaskManager {
         subtasks.put(subtask.getId(), subtask);
         epic.addSubtask(subtask);
         updateEpicStatus(epic);
+        epic.updateTimeFields(getSubtaskByEpic(epic.getId()));
         if (subtask.getStartTime() != null) {
             prioritizedTasks.add(subtask);
         }
@@ -75,6 +76,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     protected void loadTask(Task task) {
         tasks.put(task.getId(), task);
+        if (task.getStartTime() != null) {
+            prioritizedTasks.add(task);
+        }
     }
 
     protected void loadEpic(Epic epic) {
@@ -83,6 +87,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     protected void loadSubtask(Subtask subtask) {
         subtasks.put(subtask.getId(), subtask);
+        if (subtask.getStartTime() != null) {
+            prioritizedTasks.add(subtask);
+        }
     }
 
     protected void setIdCounter(int idCounter) {
@@ -99,6 +106,12 @@ public class InMemoryTaskManager implements TaskManager {
             Task oldTask = tasks.get(task.getId());
             if (oldTask.getStartTime() != null) {
                 prioritizedTasks.remove(oldTask);
+            }
+            if (task.getStartTime() != null && hasIntersection(task)) {
+                if (oldTask.getStartTime() != null) {
+                    prioritizedTasks.add(oldTask);
+                }
+                throw new IllegalArgumentException("Обновлённая задача пересекается по времени с другой задачей");
             }
             tasks.put(task.getId(), task);
             if (task.getStartTime() != null) {
@@ -127,8 +140,12 @@ public class InMemoryTaskManager implements TaskManager {
             if (oldSubtask.getEpicId() != subtask.getEpicId()) {
                 return;
             }
+            if (subtask.getStartTime() != null && hasIntersection(subtask)) {
+                throw new IllegalArgumentException("Обновлённая подзадача пересекается по времени с другой задачей");
+            }
             subtasks.put(subtask.getId(), subtask);
             updateEpicStatus(epics.get(subtask.getEpicId()));
+            epics.get(subtask.getEpicId()).updateTimeFields(getSubtaskByEpic(subtask.getEpicId()));
             if (subtask.getStartTime() != null) {
                 prioritizedTasks.add(subtask);
             }
@@ -149,6 +166,10 @@ public class InMemoryTaskManager implements TaskManager {
         Epic epic = epics.remove(id);
         if (epic != null) {
             epic.getSubtaskIds().stream().forEach(subtaskId -> {
+                Subtask subtask = subtasks.remove(subtaskId);
+                if (subtask != null && subtask.getStartTime() != null) {
+                    prioritizedTasks.remove(subtask);
+                }
                 historyManager.remove(subtaskId);
                 subtasks.remove(subtaskId);
             });
@@ -164,6 +185,7 @@ public class InMemoryTaskManager implements TaskManager {
             if (epic != null) {
                 epic.removeSubtask(id);
                 updateEpicStatus(epic);
+                epic.updateTimeFields(getSubtaskByEpic(epic.getId()));
                 historyManager.remove(subtask.getId());
             }
             if (subtask.getStartTime() != null) {
@@ -211,6 +233,7 @@ public class InMemoryTaskManager implements TaskManager {
             });
             epic.clearSubtasks();
             updateEpicStatus(epic);
+            epic.updateTimeFields(new ArrayList<>());
         });
         subtasks.clear();
     }
