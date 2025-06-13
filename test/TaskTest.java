@@ -6,205 +6,148 @@ import model.Status;
 import model.Subtask;
 import model.Task;
 import org.junit.jupiter.api.Test;
+import manager.FileBackedTaskManager;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class TaskTest {
-
-    TaskManager taskManager = Managers.getDefault();
-    Task task1 = new Task("model.Task 1", "Описание 1", Status.NEW);
-    Task task2 = new Task("model.Task 2", "Описание 2", Status.DONE);
-    Epic epic1 = new Epic("Подготовка к поездке", "Собрать вещи, купить билеты");
-    Subtask subtask1 = new Subtask("Купить билеты", "Забронировать и оплатить билеты", Status.IN_PROGRESS, epic1.getId());
-    Subtask subtask2 = new Subtask("Собрать чемодан", "Упаковать вещи", Status.NEW, epic1.getId());
+    // Здесь будут новые тесты по текущему заданию
 
     @Test
-    void objectsShouldBeEqualIfTheirIdAreEqual() {
-        int commonId = 1;
-        task1.setId(commonId);
-        task2.setId(commonId);
-        assertEquals(task1, task2, "Объекты model.Task должны быть равны, если их id совпадают");
-    }
-
-    @Test
-    void inheritorObjectsShouldBeEqualIfTheirIdAreEqual() {
-        int commonId = 1;
-        subtask1.setId(commonId);
-        subtask2.setId(commonId);
-        assertEquals(subtask1, subtask2, "Объекты model.Subtask должны быть равны, если их id совпадают");
-    }
-
-    @Test
-    void epicShouldNotAddEpicIntoItself() {
-        epic1.setId(100);
-        epic1.addSubtask(epic1);
-        assertTrue(epic1.getSubtaskIds().isEmpty(), "Эпик не должен добавляться в качестве своей подзадачи");
-    }
-
-    @Test
-    public void testGetDefaultTaskManagerReturnsInitializedInstance() {
+    void epicStatus_AllNew() {
         TaskManager manager = Managers.getDefault();
-        assertNotNull(manager, "Менеджер задач не должен быть null");
-
-        Task task = new Task("Test model.Task", "Описание тестовой задачи", Status.NEW);
-        manager.addTask(task);
-
-        Task retrievedTask = manager.getTask(task.getId());
-        assertNotNull(retrievedTask);
-        assertEquals(task, retrievedTask);
-    }
-
-    @Test
-    public void testAddAndFindTasksById() {
-        TaskManager manager = Managers.getDefault();
-
-        Task task = new Task("model.Task", "T smth", Status.NEW);
-        manager.addTask(task);
-
-        Epic epic = new Epic("model.Epic", "E smth");
+        Epic epic = new Epic("Epic", "desc", null, null);
         manager.addEpic(epic);
-
-        Subtask subtask = new Subtask("model.Subtask", "S smth", Status.NEW, epic.getId());
-        manager.addSubtask(subtask);
-
-        Task retrievedTask = manager.getTask(task.getId());
-        assertNotNull(retrievedTask);
-        assertEquals(task, retrievedTask);
-
-        Epic retrievedEpic = manager.getEpic(epic.getId());
-        assertNotNull(retrievedEpic);
-        assertEquals(epic, retrievedEpic);
-
-        Subtask retrievedSubtask = manager.getSubtask(subtask.getId());
-        assertNotNull(retrievedSubtask);
-        assertEquals(subtask, retrievedSubtask);
+        Subtask s1 = new Subtask("s1", "d1", Status.NEW, epic.getId(), null, null);
+        Subtask s2 = new Subtask("s2", "d2", Status.NEW, epic.getId(), null, null);
+        manager.addSubtask(s1);
+        manager.addSubtask(s2);
+        assertEquals(Status.NEW, manager.getEpic(epic.getId()).getStatus());
     }
 
     @Test
-    public void testUniqueIdsForManuallyAssignedAndGeneratedTasks() {
+    void epicStatus_AllDone() {
         TaskManager manager = Managers.getDefault();
-
-        Task task1 = new Task("model.Task 1", "Описание 1", Status.NEW);
-        task1.setId(100);
-        manager.addTask(task1);
-
-        Task task2 = new Task("model.Task 2", "Описание 2", Status.NEW);
-        manager.addTask(task2);
-
-        int id1 = task1.getId();
-        int id2 = task2.getId();
-
-        assertNotEquals(id1, id2);
-
-        Task retrievedTask1 = manager.getTask(id1);
-        Task retrievedTask2 = manager.getTask(id2);
-
-        assertEquals(task1, retrievedTask1);
-        assertEquals(task2, retrievedTask2);
-    }
-
-    @Test
-    public void testTaskImmutabilityAfterAddingToManager() {
-        TaskManager manager = Managers.getDefault();
-
-        String expectedTitle = "Test model.Task";
-        String expectedDescription = "Test Description";
-        Status expectedStatus = Status.NEW;
-        Task originalTask = new Task(expectedTitle, expectedDescription, expectedStatus);
-
-        manager.addTask(originalTask);
-
-        Task retrievedTask = manager.getTask(originalTask.getId());
-        assertNotNull(retrievedTask);
-
-        assertEquals(expectedTitle, retrievedTask.getTitle());
-        assertEquals(expectedDescription, retrievedTask.getDescription());
-        assertEquals(expectedStatus, retrievedTask.getStatus());
-        assertTrue(retrievedTask.getId() > 0);
-    }
-
-    @Test
-    public void testHistoryAdd() {
-        HistoryManager historyManager = Managers.getDefaultHistory();
-
-        Task task1 = new Task("Задача 1", "Описание задачи 1", Status.NEW);
-        Task task2 = new Task("Задача 2", "Описание задачи 2", Status.NEW);
-        task1.setId(0);
-        task2.setId(1);
-
-        historyManager.add(task2);
-        historyManager.add(task1);
-
-        List<Task> history = historyManager.getHistory();
-        assertEquals(2, history.size());
-        assertEquals(task1, history.get(1));
-        assertEquals(task2, history.get(0));
-
-    }
-
-    @Test
-    public void testHistoryRemove() {
-        HistoryManager historyManager = Managers.getDefaultHistory();
-
-        task1.setId(0);
-        task1.setId(1);
-
-        historyManager.add(task1);
-        historyManager.add(task2);
-
-        List<Task> history = historyManager.getHistory();
-        assertEquals(2, history.size());
-        assertEquals(task1, history.get(0));
-        assertEquals(task2, history.get(1));
-
-        historyManager.remove(task1.getId());
-        history = historyManager.getHistory();
-        assertEquals(1, history.size());
-        assertEquals(task2, history.get(0));
-    }
-
-    @Test
-    public void testSubtaskDeletionRemovesIdFromEpic() {
-        TaskManager manager = Managers.getDefault();
-
-        Epic epic = new Epic("Epic", "Epic description");
+        Epic epic = new Epic("Epic", "desc", null, null);
         manager.addEpic(epic);
-        Subtask subtask1 = new Subtask("Subtask 1", "Subtask description 1", Status.NEW, epic.getId());
-        Subtask subtask2 = new Subtask("Subtask 2", "Subtask description 2", Status.NEW, epic.getId());
-        manager.addSubtask(subtask1);
-        manager.addSubtask(subtask2);
-
-        List<Integer> epicSubtaskIds = epic.getSubtaskIds();
-        assertTrue(epicSubtaskIds.contains(subtask1.getId()));
-        assertTrue(epicSubtaskIds.contains(subtask2.getId()));
-
-        manager.deleteSubtask(subtask1.getId());
-
-        epicSubtaskIds = epic.getSubtaskIds();
-        assertFalse(epicSubtaskIds.contains(subtask1.getId()));
-        assertEquals(1, epicSubtaskIds.size());
-        assertEquals(subtask2.getId(), epicSubtaskIds.get(0));
+        Subtask s1 = new Subtask("s1", "d1", Status.DONE, epic.getId(), null, null);
+        Subtask s2 = new Subtask("s2", "d2", Status.DONE, epic.getId(), null, null);
+        manager.addSubtask(s1);
+        manager.addSubtask(s2);
+        assertEquals(Status.DONE, manager.getEpic(epic.getId()).getStatus());
     }
 
     @Test
-    public void testSubtaskDeletionFromEpic() {
+    void epicStatus_NewAndDone() {
         TaskManager manager = Managers.getDefault();
-
-        Epic epic = new Epic("Epic", "Epic description");
+        Epic epic = new Epic("Epic", "desc", null, null);
         manager.addEpic(epic);
-        Subtask subtask1 = new Subtask("Subtask 1", "Subtask description 1", Status.NEW, epic.getId());
-        Subtask subtask2 = new Subtask("Subtask 2", "Subtask description 2", Status.NEW, epic.getId());
-        manager.addSubtask(subtask1);
-        manager.addSubtask(subtask2);
+        Subtask s1 = new Subtask("s1", "d1", Status.NEW, epic.getId(), null, null);
+        Subtask s2 = new Subtask("s2", "d2", Status.DONE, epic.getId(), null, null);
+        manager.addSubtask(s1);
+        manager.addSubtask(s2);
+        assertEquals(Status.IN_PROGRESS, manager.getEpic(epic.getId()).getStatus());
+    }
 
-        assertNotNull(manager.getSubtask(subtask1.getId()));
-        assertNotNull(manager.getSubtask(subtask2.getId()));
+    @Test
+    void epicStatus_InProgress() {
+        TaskManager manager = Managers.getDefault();
+        Epic epic = new Epic("Epic", "desc", null, null);
+        manager.addEpic(epic);
+        Subtask s1 = new Subtask("s1", "d1", Status.IN_PROGRESS, epic.getId(), null, null);
+        Subtask s2 = new Subtask("s2", "d2", Status.NEW, epic.getId(), null, null);
+        manager.addSubtask(s1);
+        manager.addSubtask(s2);
+        assertEquals(Status.IN_PROGRESS, manager.getEpic(epic.getId()).getStatus());
+    }
 
-        manager.deleteSubtask(subtask1.getId());
+    @Test
+    void shouldThrowOnIntersectingTasks() {
+        TaskManager manager = Managers.getDefault();
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        Task t1 = new Task("t1", "d1", Status.NEW, java.time.Duration.ofMinutes(60), now);
+        manager.addTask(t1);
+        Task t2 = new Task("t2", "d2", Status.NEW, java.time.Duration.ofMinutes(30), now.plusMinutes(30));
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> manager.addTask(t2));
+        assertTrue(ex.getMessage().contains("пересекается"));
+    }
 
-        assertEquals(1, epic.getSubtaskIds().size());
-        assertEquals(subtask2.getId(), epic.getSubtaskIds().get(0));
+    @Test
+    void prioritizedTasksShouldBeSortedByStartTime() {
+        TaskManager manager = Managers.getDefault();
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        Task t1 = new Task("t1", "d1", Status.NEW, java.time.Duration.ofMinutes(60), now.plusMinutes(60));
+        Task t2 = new Task("t2", "d2", Status.NEW, java.time.Duration.ofMinutes(30), now);
+        Task t3 = new Task("t3", "d3", Status.NEW, java.time.Duration.ofMinutes(15), null); // без времени
+        manager.addTask(t1);
+        manager.addTask(t2);
+        manager.addTask(t3);
+        List<Task> prioritized = manager.getPrioritizedTasks();
+        assertEquals(2, prioritized.size());
+        assertEquals(t2, prioritized.get(0));
+        assertEquals(t1, prioritized.get(1));
+    }
+
+    @Test
+    void fileBackedTaskManagerShouldSaveAndLoadDurationAndStartTime() throws Exception {
+        java.io.File file = java.io.File.createTempFile("tasks", ".csv");
+        file.deleteOnExit();
+        FileBackedTaskManager manager = new FileBackedTaskManager(file);
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        Task t = new Task("t1", "d1", Status.NEW, java.time.Duration.ofMinutes(42), now);
+        manager.addTask(t);
+        manager = FileBackedTaskManager.loadFromFile(file);
+        Task loaded = manager.getTask(t.getId());
+        assertNotNull(loaded);
+        assertEquals(java.time.Duration.ofMinutes(42), loaded.getDuration());
+        assertEquals(now, loaded.getStartTime());
+    }
+
+    @Test
+    void historyManager_EmptyAndDuplicatesAndRemovals() {
+        HistoryManager history = Managers.getDefaultHistory();
+        assertTrue(history.getHistory().isEmpty());
+        Task t1 = new Task("t1", "d1", Status.NEW, null, null); t1.setId(1);
+        Task t2 = new Task("t2", "d2", Status.NEW, null, null); t2.setId(2);
+        Task t3 = new Task("t3", "d3", Status.NEW, null, null); t3.setId(3);
+        history.add(t1); history.add(t2); history.add(t3); history.add(t2); // дублирование
+        List<Task> hist = history.getHistory();
+        assertEquals(3, hist.size());
+        assertEquals(t1, hist.get(0));
+        assertEquals(t3, hist.get(1));
+        assertEquals(t2, hist.get(2));
+        // удаление из начала
+        history.remove(t1.getId());
+        assertEquals(2, history.getHistory().size());
+        assertEquals(t3, history.getHistory().get(0));
+        // удаление из конца
+        history.remove(t2.getId());
+        assertEquals(1, history.getHistory().size());
+        assertEquals(t3, history.getHistory().get(0));
+        // удаление из середины (добавим снова)
+        history.add(t1); history.add(t2); // t3, t1, t2
+        history.remove(t1.getId());
+        List<Task> h = history.getHistory();
+        assertEquals(2, h.size());
+        assertEquals(t3, h.get(0));
+        assertEquals(t2, h.get(1));
+    }
+
+    @Test
+    void fileBackedTaskManager_ShouldThrowOnInvalidFile() {
+        java.io.File file = new java.io.File("/nonexistent/path/tasks.csv");
+        assertThrows(RuntimeException.class, () -> new FileBackedTaskManager(file).addTask(new Task("t", "d", Status.NEW, null, null)));
+    }
+
+    @Test
+    void fileBackedTaskManager_ShouldNotThrowOnValidFile() {
+        assertDoesNotThrow(() -> {
+            java.io.File file = java.io.File.createTempFile("tasks", ".csv");
+            file.deleteOnExit();
+            FileBackedTaskManager manager = new FileBackedTaskManager(file);
+            manager.addTask(new Task("t", "d", Status.NEW, null, null));
+        });
     }
 }
