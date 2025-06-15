@@ -19,6 +19,11 @@ public class Epic extends Task {
         this.endTime = null;
     }
 
+    public Epic() {
+        super();
+
+    }
+
 
     public ArrayList<Integer> getSubtaskIds() {
         return new ArrayList<>(subtaskIds);
