@@ -28,6 +28,10 @@ public class Task {
         this.startTime = null;
     }
 
+    public Task() {
+    }
+
+
     public int getId() {
         return id;
     }
